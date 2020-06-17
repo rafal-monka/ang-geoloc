@@ -1,1 +1,8 @@
+<ul>
+  <li *ngFor="let link of links">
+    <a [routerLink]="link.path" >{{ link.title }}</a>
+  </li>
+</ul>
+
+<!-- <button type="button" class="btn btn-primary" (click)="reset()">Reset</button> -->
 <router-outlet></router-outlet>

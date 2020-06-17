@@ -1,30 +1,43 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, APP_INITIALIZER  } from '@angular/core';
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { AgmCoreModule, LAZY_MAPS_API_CONFIG, LazyMapsAPILoaderConfigLiteral } from '@agm/core';
 
-import { agmConfigFactory } from './MapsConfig';
+import { AgmCoreModule, LAZY_MAPS_API_CONFIG, GoogleMapsAPIWrapper } from '@agm/core';
+import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient} from '@angular/common/http';
-
+import { AppRoutingModule } from './app-routing.module';
+import { RoutesComponent } from './routes/routes.component';
+import { Data } from "./data-service";
+import { agmConfigFactory } from './config/MapsConfig';
+import { AppComponent } from './app.component';
 import { MapComponent } from './map/map.component';
+// import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { DateTimePickerModule } from '@syncfusion/ej2-angular-calendars'; //https://www.syncfusion.com/kb/11174/how-to-get-started-easily-with-syncfusion-angular-9-datetimepicker
 
 @NgModule({
    declarations: [
       AppComponent,
-      MapComponent
+      MapComponent,
+      RoutesComponent
    ],
    imports: [
       BrowserModule,
       AppRoutingModule,
       HttpClientModule,
-      AgmCoreModule.forRoot({ apiKey: "NOT_SET"})
+      FormsModule,
+      AgmCoreModule.forRoot({
+        apiKey: "TO_SET_FROM_DATABASE",
+        libraries: ['places', 'drawing', 'geometry']
+      }),
+      //NoopAnimationsModule,
+      DateTimePickerModule
    ],
    providers: [{
       provide: APP_INITIALIZER,
       useFactory: agmConfigFactory,
       deps: [HttpClient, LAZY_MAPS_API_CONFIG],
-      multi: true}
+      multi: true},
+      Data
+      //GoogleMapsAPIWrapper /*Note: declare var google*/
     ],
    bootstrap: [
       AppComponent

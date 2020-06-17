@@ -1,0 +1,11 @@
+<div class="container">
+  <input [(ngModel)]="filterText" (ngModelChange)="filterRoutes()"/>
+  <div *ngIf="routes">
+    <div class="route-item" *ngFor="let route of filteredRoutes; let i = index;" (click)="chooseRoute(route)">
+      {{route.name}} {{route.datefrom}} {{route.dateto}}
+    </div>
+    <pre>
+      {{ routes.slice(0,5) | json }}
+    </pre>
+  </div>
+</div>

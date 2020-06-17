@@ -1,11 +1,51 @@
-<p>
-  map works!
-</p>
 
-<h1> {{text}}</h1>
+Od:
+<ejs-datetimepicker
+[(ngModel)]="timeFrom"
+format ='yyyy-MM-dd HH:mm:ss'>
+</ejs-datetimepicker>
+<br/>
+Do:
+<ejs-datetimepicker
+[(ngModel)]="timeTo"
+format ='yyyy-MM-dd HH:mm:ss'>
+</ejs-datetimepicker>
 
-<agm-map [latitude]="lat" [zoom]="zoom" [longitude]="lng">
-  <agm-marker  [latitude]="lat" [longitude]="lng"></agm-marker>
-</agm-map>
+<div>
 
-...
+  <button class="btn btn-primary" (click)="refresh()">Refresh</button><br/>
+  <pre>{{message}}</pre>
+
+  <agm-map (mapReady)="mapReady($event)"
+    >
+      <agm-marker  [latitude]="initLat" [longitude]="initLng"></agm-marker>
+
+      <div *ngFor="let marker of markers ">
+          <agm-marker [latitude]="marker.latitude" [longitude]="marker.longitude" [label]="marker.name"
+            [iconUrl]="{
+              url: '../assets/images/blue-marker.png',
+              scaledSize: {
+                width: 40,
+                height: 40
+            }
+            }">
+          </agm-marker>
+      </div>
+
+      <ng-container *ngIf="polylines && polylines.length>1">
+          <agm-polyline
+            *ngFor="let item of [].constructor(polylines.length-1); let i = index;"
+            [strokeWeight]="8">
+              <agm-polyline-point [latitude]="polylines[i][0]" [longitude]="polylines[i][1]"></agm-polyline-point>
+              <agm-polyline-point [latitude]="polylines[i+1][0]" [longitude]="polylines[i+1][1]"></agm-polyline-point>
+          </agm-polyline>
+      </ng-container>
+
+  </agm-map>
+
+  <br/>
+
+  <pre>message={{message}}</pre>
+  <pre>{{data | json}}</pre>
+
+</div>

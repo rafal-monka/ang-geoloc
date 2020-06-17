@@ -6,6 +6,7 @@
       "jasmine",
       "node"
     ]
+    //,"strictInjectionParameters": false
   },
   "files": [
     "src/test.ts",
