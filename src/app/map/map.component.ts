@@ -6,6 +6,7 @@ import * as moment from 'moment';
 import { MapService } from '../app-services';
 import { Utils } from '../utils';
 import { Data } from '../data-service';
+import { PanelDataObj } from '../paneldata-object';
 
 declare var google: any;
 
@@ -26,20 +27,20 @@ export class MapComponent implements OnInit {
   timeTo: Date
   imei: string
 
-
   path: Array<any>;
-
+  rectangles: Array<any>
   message:string;
   route: any;
+
+  markers: any;
+  polylines: any;
+
   constructor(
     private mapService: MapService,
     private utils: Utils,
     private router: Router,
     public data: Data
   ) { }
-
-  markers: any;
-  polylines: any;
 
   mapReady(map) {
       console.log('mapReady')
@@ -61,10 +62,8 @@ export class MapComponent implements OnInit {
 
       if (this.data.storage) {
           this.imei = this.data.storage.imei
-// console.log('map.ngOnInit (this.data.storage)', this.data.storage)
-          if (this.data.storage.datefrom) this.timeFrom = moment(this.data.storage.datefrom).utcOffset('+0000').add(-2, 'hours').toDate()
-          if (this.data.storage.dateto) this.timeTo = moment(this.data.storage.dateto).utcOffset('+0000').add(-2, 'hours').toDate()
-          console.log('map.ngOnInit (this.timeFrom, this.timeTo)', this.timeFrom, this.timeTo)
+          if (this.data.storage.dateFrom) this.timeFrom = moment(this.data.storage.dateFrom).utcOffset('+0000').add(-2, 'hours').toDate()
+          if (this.data.storage.dateTo) this.timeTo = moment(this.data.storage.dateTo).utcOffset('+0000').add(-2, 'hours').toDate()
       }
       //this.getPlaces()
       //this.getRoute(this.timeFrom, this.timeTo, this.imei)
@@ -80,44 +79,32 @@ export class MapComponent implements OnInit {
   }
 
 
-  // getPath(timeFrom: String, timeTo: String, imei: String) {
-
-  //     return this.mapService.getPath(timeFrom, timeTo, imei).subscribe(results => {
-  //         this.polylines = results;
-  //     });;
-  // }
-
-
   refresh() {
-// console.log("refresh()")
       if (this.data.storage.imei && this.timeFrom && this.timeTo) {
-// console.log('refresh(), this.timeFrom2=',this.timeFrom2)
-// console.log('refresh(), this.timeTo2=',this.timeTo2)
         let t1 = moment(this.timeFrom).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
         let t2 = moment(this.timeTo).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
-// console.log('after conversion - refresh(), t1=',t1)
-// console.log('after conversion - refresh(), t2=',t2)
-// console.log('...###drawPathPolyline...')
-        this.drawPathPolyline(this.data.storage.imei, t1, t2)
+        this.drawDataPanel(this.data.storage.imei, t1, t2)
       }
   }
 
-  drawPathPolyline(imei, timeFrom, timeTo) {
-// console.log("drawPathPolyline()")
+  drawDataPanel(imei, timeFrom, timeTo) {
     var min_lat = null, min_lng = null, max_lat = null, max_lng = null;
 
     //clear
     if (this.path) this.path.forEach(item => {
        if (item) item.setMap(null);
     })
+    if (this.rectangles) this.rectangles.forEach(item => {
+        if (item) item.setMap(null);
+    })
 
     //fill
     console.log('drawPathPolyline() (timeFrom, timeTo)', timeFrom, timeTo)
-    return this.mapService.getPath(timeFrom, timeTo, imei).subscribe(results => {
+    return this.mapService.getPanelData(imei, timeFrom, timeTo).subscribe((results:PanelDataObj) => {
       var self = this;
-      this.path = Object.keys(results).map(function(index){
-          let cur_lat = results[+index][0]
-          let cur_lng = results[+index][1]
+      this.path = Object.keys(results.geolocs).map(function(index){
+          let cur_lat = results.geolocs[+index][0]
+          let cur_lng = results.geolocs[+index][1]
             //check/set bounds
           if (min_lat === null || cur_lat < min_lat) { min_lat = cur_lat; }
           if (min_lng === null || cur_lng < min_lng) { min_lng = cur_lng; }
@@ -127,8 +114,8 @@ export class MapComponent implements OnInit {
           if (+index > 1) {
               let line = [
                 {
-                  lat: results[+index-1][0],
-                  lng: results[+index-1][1]
+                  lat: results.geolocs[+index-1][0],
+                  lng: results.geolocs[+index-1][1]
                 },
                 {
                   lat: cur_lat,
@@ -136,7 +123,7 @@ export class MapComponent implements OnInit {
                 }
               ]
 
-              let color = self.utils.getSpeedColor(results[+index][2])
+              let color = self.utils.getSpeedColor(results.geolocs[+index][2])
               var polyline: google.maps.Polyline = new google.maps.Polyline({
                 path: line,
                 strokeColor: color,
@@ -154,6 +141,32 @@ export class MapComponent implements OnInit {
       this.path.forEach(item => {
           if (item) item.setMap(this.map);
       })
+
+      //rectangles
+      if (results.type === "aggregated") {
+
+          this.rectangles = Object.keys(results.geolocs).map(function(index){
+              var rectangle = new google.maps.Rectangle({
+                strokeColor: 'orange',
+                strokeOpacity: 0.8,
+                strokeWeight: 1,
+                /*fillColor: '#FF0000',*/
+                fillOpacity: 0.02,
+                bounds: {
+                    north: results.geolocs[+index][4],
+                    south: results.geolocs[+index][3],
+                    east: results.geolocs[+index][6],
+                    west: results.geolocs[+index][5]
+                }
+              })
+              return rectangle;
+          });
+
+          //set map
+          this.rectangles.forEach(item => {
+              if (item) item.setMap(this.map);
+          })
+      }
 
       //set bouonds
       if (this.path.length > 0) {
@@ -194,11 +207,3 @@ export class MapComponent implements OnInit {
 
 }
 
-
-
-//-------------
-// //center
-// if (this.path && this.path.length>0) {
-//   let lastPosition = this.path[this.path.length-1].getPath().getArray()[1];
-//   this.map.setCenter(lastPosition)
-// }

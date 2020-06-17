@@ -20,7 +20,15 @@ export class RoutesComponent implements OnInit {
     private router: Router,
     private data: Data) { }
 
+  ngOnInit() {
+      this.getRoutes()
+      if (this.data.storage) {
+        if (this.data.storage.routeFilterText) this.filterText = this.data.storage.routeFilterText
+      }
+  }
+
   filterRoutes() {
+      this.data.storage.routeFilterText = this.filterText
       let filterText = this.filterText.toLowerCase()
       this.filteredRoutes = this.routes.filter(element => {
           return element.name.toLowerCase().indexOf(filterText) > -1
@@ -29,36 +37,20 @@ export class RoutesComponent implements OnInit {
 
   getRoutes() {
       return this.mapService.getRoutes(this.data.storage.imei).subscribe(results => {
-          this.filteredRoutes = results;
           this.routes = results;
+          this.filterRoutes();
       });
   }
 
   chooseRoute(route) {
-      console.log("route", route)
       //this.mapService.changeMessage("Hello from Sibling")
-      this.data.storage.datefrom = route.datefrom
-      this.data.storage.dateto = route.dateto
+      this.data.storage.dateFrom = route.datefrom
+      this.data.storage.dateTo = route.dateto
       this.data.storage.name = route.name
       this.router.navigateByUrl('map');
   }
 
-  ngOnInit() {
-      this.getRoutes()
-  }
+
 
 }
 
-
-/*
-          let tmp = Object.keys(results).filter(e => {
-              console.log(e)
-              return e
-          }).reduce((obj, key) => {
-    return {
-      ...obj,
-      [key]: raw[key]
-    };
-  }, {});
-          console.log('tmp.length', tmp[0])
-          */

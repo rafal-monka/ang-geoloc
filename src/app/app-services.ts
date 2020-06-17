@@ -26,8 +26,8 @@ export class MapService {
     return this.http.get(environment.host+"/api/route/"+imei)
   }
 
-  getPath(fromTime: String, toTime: String, imei: String) {
-    return this.http.get(environment.host+"/api/geoloc/between/"+fromTime+"/"+toTime+"/"+imei)
+  getPanelData(imei: String, fromTime: String, toTime: String) {
+    return this.http.get(environment.host+"/api/geoloc/paneldata/"+imei+"/"+fromTime+"/"+toTime)
   }
 }
 

@@ -18,7 +18,7 @@ format ='yyyy-MM-dd HH:mm:ss'>
 
   <agm-map (mapReady)="mapReady($event)"
     >
-      <agm-marker  [latitude]="initLat" [longitude]="initLng"></agm-marker>
+      <!-- <agm-marker  [latitude]="initLat" [longitude]="initLng"></agm-marker> -->
 
       <div *ngFor="let marker of markers ">
           <agm-marker [latitude]="marker.latitude" [longitude]="marker.longitude" [label]="marker.name"

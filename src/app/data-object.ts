@@ -1,6 +1,7 @@
 export class DataObj {
   imei: string;
-  datefrom: string;
-  dateto: string;
+  dateFrom: string;
+  dateTo: string;
   name: string;
+  routeFilterText: string
 }
