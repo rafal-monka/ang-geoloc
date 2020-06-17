@@ -1,26 +1,51 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-4">
 
-Od:
-<ejs-datetimepicker
-[(ngModel)]="timeFrom"
-format ='yyyy-MM-dd HH:mm:ss'>
-</ejs-datetimepicker>
-<br/>
-Do:
-<ejs-datetimepicker
-[(ngModel)]="timeTo"
-format ='yyyy-MM-dd HH:mm:ss'>
-</ejs-datetimepicker>
+      <form>
+        <div class="form-group row">
+          <label for="timeFrom" class="col-sm-2 col-form-label">From</label>
+          <div class="col-sm-10">
+            <ejs-datetimepicker
+              id="timeFrom" name="from"
+              class="form-control"
+              [(ngModel)]="timeFrom"
+              format ='yyyy-MM-dd HH:mm:ss'>
+            </ejs-datetimepicker>
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="timeTo" class="col-sm-2 col-form-label">To</label>
+          <div class="col-sm-10">
+              <ejs-datetimepicker
+                id="timeTo" name="to"
+                class="form-control"
+                [(ngModel)]="timeTo"
+                format ='yyyy-MM-dd HH:mm:ss'>
+              </ejs-datetimepicker>
+          </div>
+        </div>
+      </form>
+
+    </div>
+    <div class="col-2">
+      <button class="btn btn-success" (click)="refresh()">Refresh</button><br/>
+    </div>
+  </div>
+</div>
+
+
 
 <div>
 
-  <button class="btn btn-primary" (click)="refresh()">Refresh</button><br/>
   <pre>{{message}}</pre>
 
   <agm-map (mapReady)="mapReady($event)"
     >
       <!-- <agm-marker  [latitude]="initLat" [longitude]="initLng"></agm-marker> -->
 
-      <div *ngFor="let marker of markers ">
+      <!-- <div *ngFor="let marker of markers ">
           <agm-marker [latitude]="marker.latitude" [longitude]="marker.longitude" [label]="marker.name"
             [iconUrl]="{
               url: '../assets/images/blue-marker.png',
@@ -30,22 +55,21 @@ format ='yyyy-MM-dd HH:mm:ss'>
             }
             }">
           </agm-marker>
-      </div>
+      </div> -->
 
-      <ng-container *ngIf="polylines && polylines.length>1">
+      <!-- <ng-container *ngIf="polylines && polylines.length>1">
           <agm-polyline
             *ngFor="let item of [].constructor(polylines.length-1); let i = index;"
             [strokeWeight]="8">
               <agm-polyline-point [latitude]="polylines[i][0]" [longitude]="polylines[i][1]"></agm-polyline-point>
               <agm-polyline-point [latitude]="polylines[i+1][0]" [longitude]="polylines[i+1][1]"></agm-polyline-point>
           </agm-polyline>
-      </ng-container>
+      </ng-container> -->
 
   </agm-map>
 
   <br/>
 
-  <pre>message={{message}}</pre>
   <pre>{{data | json}}</pre>
 
 </div>

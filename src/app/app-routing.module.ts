@@ -6,7 +6,8 @@ import {RoutesComponent} from './routes/routes.component'
 const routes: Routes = [
   { path: '', redirectTo: 'map', pathMatch: 'full' },
   { path: 'map', component: MapComponent },
-  { path: 'routes', component: RoutesComponent }
+  { path: 'routes', component: RoutesComponent },
+  { path: 'settings', component: RoutesComponent }
 ];
 
 @NgModule({

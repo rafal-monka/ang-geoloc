@@ -37,7 +37,18 @@ export class RoutesComponent implements OnInit {
 
   getRoutes() {
       return this.mapService.getRoutes(this.data.storage.imei).subscribe(results => {
-          this.routes = results;
+          this.routes = Object.keys(results).map(function(index){
+              let today  = new Date()
+              let day = new Date(results[index].dateto)
+              let days_ago = Math.floor((today.getTime() - day.getTime()) / (1000 * 60 * 60 * 24))
+              let obj = {
+                  name: results[index].name,
+                  datefrom: results[index].datefrom,
+                  dateto: results[index].dateto,
+                  days_ago: days_ago
+              }
+              return obj;
+          })
           this.filterRoutes();
       });
   }

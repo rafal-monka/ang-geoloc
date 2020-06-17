@@ -1,8 +1,24 @@
-<ul>
-  <li *ngFor="let link of links">
-    <a [routerLink]="link.path" >{{ link.title }}</a>
-  </li>
-</ul>
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark">
 
-<!-- <button type="button" class="btn btn-primary" (click)="reset()">Reset</button> -->
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="nav navbar-nav">
+      <li class="nav-item" *ngFor="let link of links" [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}">
+        <a class="nav-link" routerLink="/{{link.path}}" >{{link.title}}</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="form-inline">
+    <ul class="nav navbar-nav">
+      <li class="nav-item" [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}">
+        <a class="nav-link" routerLink="/settings">
+          <span class="navbar-toggler-icon"></span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+</nav>
+
+<br/>
 <router-outlet></router-outlet>

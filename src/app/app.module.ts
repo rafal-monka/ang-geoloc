@@ -10,8 +10,10 @@ import { Data } from "./data-service";
 import { agmConfigFactory } from './config/MapsConfig';
 import { AppComponent } from './app.component';
 import { MapComponent } from './map/map.component';
+
 // import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { DateTimePickerModule } from '@syncfusion/ej2-angular-calendars'; //https://www.syncfusion.com/kb/11174/how-to-get-started-easily-with-syncfusion-angular-9-datetimepicker
+import { DateTimePickerModule } from '@syncfusion/ej2-angular-calendars';//https://www.syncfusion.com/kb/11174/how-to-get-started-easily-with-syncfusion-angular-9-datetimepicker
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
    declarations: [
@@ -29,6 +31,7 @@ import { DateTimePickerModule } from '@syncfusion/ej2-angular-calendars'; //http
         libraries: ['places', 'drawing', 'geometry']
       }),
       //NoopAnimationsModule,
+      NgbModule,
       DateTimePickerModule
    ],
    providers: [{
