@@ -1,16 +1,13 @@
 <div class="container-fluid">
 
-  <div class="form-group row">
-    <label for="filterText" class="col-sm-2 col-form-label">Search</label>
-    <div class="col-sm-10">
-      <input
-        id="filterText"
-        class="form-control"
-        name="filterText"
-        [(ngModel)]="filterText"
-        (ngModelChange)="filterRoutes()"/>
-    </div>
-  </div>
+  <input
+    style="margin-top: 2px; margin-bottom: 2px;"
+    id="filterText"
+    class="form-control"
+    name="filterText"
+    placeholder="Search..."
+    [(ngModel)]="filterText"
+    (ngModelChange)="filterRoutes()"/>
 
   <div *ngIf="routes">
     <ul class="list-group">
@@ -18,8 +15,8 @@
         *ngFor="let route of filteredRoutes; let i = index;" (click)="chooseRoute(route)">
 
         <div class="d-flex w-100 justify-content-between">
-          <span class="mb-1">{{route.name}} </span>
-          <small>{{route.datefrom}} {{route.dateto}}    [{{route.days_ago}} day{{route.days_ago>1?"(s)":""}} ago]</small>
+          <span class="mb-1">{{route.name}}</span>
+          <small><span style="color:blue">{{route.day}}</span>, {{route.days_ago}} day{{route.days_ago>1?"(s)":""}} ago</small>
         </div>
 
       </li>

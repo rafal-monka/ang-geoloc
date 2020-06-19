@@ -29,10 +29,11 @@ export class MapComponent implements OnInit {
 
   path: Array<any>;
   rectangles: Array<any>
+  btses: Array<any>;
+
   message:string;
   route: any;
 
-  markers: any;
   polylines: any;
 
   constructor(
@@ -71,12 +72,12 @@ export class MapComponent implements OnInit {
       //this.getTestPolyline()
   }
 
-  getPlaces() {
-      return this.mapService.getPlaces().subscribe(results => {
-        //console.log(results);
-        this.markers = results;
-      });
-  }
+  // getPlaces() {
+  //     return this.mapService.getPlaces().subscribe(results => {
+  //       //console.log(results);
+  //       this.markers = results;
+  //     });
+  // }
 
 
   refresh() {
@@ -88,99 +89,127 @@ export class MapComponent implements OnInit {
   }
 
   drawDataPanel(imei, timeFrom, timeTo) {
-    var min_lat = null, min_lng = null, max_lat = null, max_lng = null;
-
-    //clear
-    if (this.path) this.path.forEach(item => {
-       if (item) item.setMap(null);
-    })
-    if (this.rectangles) this.rectangles.forEach(item => {
-        if (item) item.setMap(null);
-    })
-
-    //fill
-    console.log('drawPathPolyline() (timeFrom, timeTo)', timeFrom, timeTo)
-    return this.mapService.getPanelData(imei, timeFrom, timeTo).subscribe((results:PanelDataObj) => {
-      var self = this;
-      this.path = Object.keys(results.geolocs).map(function(index){
-          let cur_lat = results.geolocs[+index][0]
-          let cur_lng = results.geolocs[+index][1]
-            //check/set bounds
-          if (min_lat === null || cur_lat < min_lat) { min_lat = cur_lat; }
-          if (min_lng === null || cur_lng < min_lng) { min_lng = cur_lng; }
-          if (max_lat === null || cur_lat > max_lat) { max_lat = cur_lat; }
-          if (max_lng === null || cur_lng > max_lng) { max_lng = cur_lng; }
-
-          if (+index > 1) {
-              let line = [
-                {
-                  lat: results.geolocs[+index-1][0],
-                  lng: results.geolocs[+index-1][1]
-                },
-                {
-                  lat: cur_lat,
-                  lng: cur_lng
-                }
-              ]
-
-              let color = self.utils.getSpeedColor(results.geolocs[+index][2])
-              var polyline: google.maps.Polyline = new google.maps.Polyline({
-                path: line,
-                strokeColor: color,
-                strokeOpacity: 0.9,
-                strokeWeight: 6,
-                fillColor: color,
-                fillOpacity: 0.7
-              });
-
-              return polyline;
-          }
-      });
-
-      //set map
-      this.path.forEach(item => {
-          if (item) item.setMap(this.map);
-      })
-
-      //rectangles
-      if (results.type === "aggregated") {
-
-          this.rectangles = Object.keys(results.geolocs).map(function(index){
-              var rectangle = new google.maps.Rectangle({
-                strokeColor: 'orange',
-                strokeOpacity: 0.8,
-                strokeWeight: 1,
-                /*fillColor: '#FF0000',*/
-                fillOpacity: 0.02,
-                bounds: {
-                    north: results.geolocs[+index][4],
-                    south: results.geolocs[+index][3],
-                    east: results.geolocs[+index][6],
-                    west: results.geolocs[+index][5]
-                }
-              })
-              return rectangle;
-          });
-
-          //set map
-          this.rectangles.forEach(item => {
-              if (item) item.setMap(this.map);
+      //clear
+      if (this.path) {
+          this.path.forEach(item => {
+              if (item) item.setMap(null);
           })
+          this.path.length = 0
+      }
+      if (this.btses) {
+          this.btses.length = 0
+      }
+      if (this.rectangles) {
+          this.rectangles.forEach(item => {
+              if (item) item.setMap(null);
+          })
+          this.rectangles.length = 0
       }
 
-      //set bouonds
-      if (this.path.length > 0) {
-          this.map.fitBounds(
-              new google.maps.LatLngBounds(
-                  new google.maps.LatLng(min_lat, min_lng),
-                  new google.maps.LatLng(max_lat, max_lng)
+      //getPanelData
+      console.log('drawPathPolyline() (timeFrom, timeTo)', timeFrom, timeTo)
+      return this.mapService.getPanelData(imei, timeFrom, timeTo).subscribe((results:PanelDataObj) => {
+          var min_lat = null, min_lng = null, max_lat = null, max_lng = null;
+
+          switch (results.type) {
+
+              //show path and BTSes only in 'detailed' type
+              case "detailed":
+                  //path
+                  var self = this;
+                  this.path = Object.keys(results.geolocs).map(function(index){
+                    let cur_lat = results.geolocs[+index].lat
+                    let cur_lng = results.geolocs[+index].lng
+                    //start with second item (end of first step)
+                    if (+index > 1) {
+                        let line = [
+                          { lat: results.geolocs[+index-1].lat, lng: results.geolocs[+index-1].lng },
+                          { lat: cur_lat, lng: cur_lng }
+                        ]
+                        let color = self.utils.getSpeedColor(results.geolocs[+index].spd)
+                        var polyline: google.maps.Polyline = new google.maps.Polyline({
+                          path: line,
+                          strokeColor: color,
+                          strokeOpacity: 0.9,
+                          strokeWeight: 6,
+                          fillColor: color,
+                          fillOpacity: 0.7
+                        });
+
+                        return polyline;
+                    }
+                  });
+                  //set map for path elements
+                  this.path.forEach(item => {
+                    if (item) item.setMap(this.map);
+                  })
+
+                  //BTSes
+                  let arr = Object.keys(results.geolocs).map(function(index){
+                      return {
+                          lat: results.geolocs[+index].btslat,
+                          lng: results.geolocs[+index].btslng,
+                          info: results.geolocs[+index].btsi
+                      }
+                  })
+                  //unique BTSes
+                  if (arr) this.btses = arr.filter(
+                      (item, pos, self) => self.findIndex(v => {
+                          return v.lat === item.lat && v.lng === item.lng && v.info === item.info && item.lat !== 0 && item.lng !== 0
+                      }) === pos);
+
+                  //bounds
+                  min_lat = results.geolocs.reduce((min, p) => p.lat < min ? p.lat : min, results.geolocs[0].lat);
+                  min_lng = results.geolocs.reduce((min, p) => p.lng < min ? p.lng : min, results.geolocs[0].lng);
+                  max_lat = results.geolocs.reduce((max, p) => p.lat > max ? p.lat : max, results.geolocs[0].lat);
+                  max_lng = results.geolocs.reduce((max, p) => p.lng > max ? p.lng : max, results.geolocs[0].lng);
+                  break;
+
+              //show rectangles (areas) only in 'aggregated' type
+              case "aggregated":
+                  this.rectangles = Object.keys(results.geolocs).map(function(index){
+                      var rectangle = new google.maps.Rectangle({
+                        strokeColor: 'orange',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 1,
+                        /*fillColor: '#FF0000',*/
+                        fillOpacity: 0.02,
+                        bounds: {
+                            north: results.geolocs[+index].maxlat,
+                            south: results.geolocs[+index].minlat,
+                            east: results.geolocs[+index].maxlng,
+                            west: results.geolocs[+index].minlng
+                        }
+                      })
+                      return rectangle;
+                  });
+                  //set map
+                  this.rectangles.forEach(item => {
+                      if (item) item.setMap(this.map);
+                  })
+
+                  //bounds
+                  min_lat = results.geolocs.reduce((min, p) => p.minlat < min ? p.minlat : min, results.geolocs[0].minlat);
+                  min_lng = results.geolocs.reduce((min, p) => p.minlng < min ? p.minlng : min, results.geolocs[0].minlng);
+                  max_lat = results.geolocs.reduce((max, p) => p.maxlat > max ? p.maxlat : max, results.geolocs[0].maxlat);
+                  max_lng = results.geolocs.reduce((max, p) => p.maxlng > max ? p.maxlng : max, results.geolocs[0].maxlng);
+                  break;
+          }
+
+          //set bounds
+          if (min_lat) {
+              this.map.fitBounds(
+                  new google.maps.LatLngBounds(
+                      new google.maps.LatLng(min_lat, min_lng),
+                      new google.maps.LatLng(max_lat, max_lng)
+                  )
               )
-          )
-      } else {
-          this.message = "Brak danych w podanym okresie"
-      }
+              this.message = ''
+          } else {
+              this.message = 'No data found'
+          }
 
-    });
+      });
   }
 
 

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import * as moment from 'moment';
 import { MapService } from '../app-services';
 import { Data } from '../data-service';
 
@@ -45,7 +46,8 @@ export class RoutesComponent implements OnInit {
                   name: results[index].name,
                   datefrom: results[index].datefrom,
                   dateto: results[index].dateto,
-                  days_ago: days_ago
+                  days_ago: days_ago,
+                  day: moment(day).add(-2, 'hours').format('MMMM DD, YYYY, HH:mm')
               }
               return obj;
           })
