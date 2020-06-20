@@ -14,12 +14,14 @@ import { MapComponent } from './map/map.component';
 // import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { DateTimePickerModule } from '@syncfusion/ej2-angular-calendars';//https://www.syncfusion.com/kb/11174/how-to-get-started-easily-with-syncfusion-angular-9-datetimepicker
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { WebsocketComponent } from './websocket/websocket.component';
 
 @NgModule({
    declarations: [
       AppComponent,
       MapComponent,
-      RoutesComponent
+      RoutesComponent,
+      WebsocketComponent
    ],
    imports: [
       BrowserModule,
@@ -27,7 +29,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
       HttpClientModule,
       FormsModule,
       AgmCoreModule.forRoot({
-        apiKey: "TO_SET_FROM_DATABASE",
+        apiKey: 'TO_SET_FROM_DATABASE',
         libraries: ['places', 'drawing', 'geometry']
       }),
       //NoopAnimationsModule,

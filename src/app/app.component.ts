@@ -10,7 +10,8 @@ export class AppComponent {
   title = 'ang-geoloc';
   links = [
     { title: 'Map', path: 'map' },
-    { title: 'Routes', path: 'routes' }
+    { title: 'Routes', path: 'routes' },
+    { title: 'WS', path: 'ws' }
   ];
 
   constructor(public route: ActivatedRoute) {}

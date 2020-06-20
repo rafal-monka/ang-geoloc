@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { DataObj } from './data-object';
 
 const CATS41_IMEI: string = "357876082170434"
+const VS_AVD_IMEI : string = "358240051111110"
 
 @Injectable()
 export class Data {

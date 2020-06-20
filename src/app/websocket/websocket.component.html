@@ -1,0 +1,14 @@
+<p>
+  websocket works! #{{hashkey}}
+</p>
+<input [(ngModel)]="imei" placeholder="IMEI..."/><button (click)="toggleLiveData()">{{lifeDataState?"Off":"On"}}</button>
+<br/>
+<input [(ngModel)]="text" placeholder="Text..."/>
+<button (click)="sendText()">Send</button>
+
+<pre>{{messages.length}}</pre>
+<ul>
+    <li *ngFor="let msg of messages">
+      {{msg}}
+    </li>
+</ul>

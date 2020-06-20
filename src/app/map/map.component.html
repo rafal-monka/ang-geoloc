@@ -13,6 +13,13 @@
           </td>
           <td rowspan=2>
             <button class="btn btn-success" (click)="refresh()">Refresh</button>
+            <br/>
+            <!-- <input [(ngModel)]="imei" placeholder="IMEI..."/> -->
+            <button class="btn btn-warning" (click)="toggleLiveData()">{{lifeDataState?"Off":"On"}}</button>
+            &nbsp;<label>
+              <input type="checkbox" [(ngModel)]="followMe" />
+            </label>
+
           </td>
         </tr>
         <tr>
@@ -60,8 +67,14 @@
       </ng-container> -->
 
   </agm-map>
-
+  IMEI={{imei}}
   <br/>
+  <ul>
+    <li *ngFor ="let msg of messages">
+      {{msg | json}}
+    </li>
+  </ul>
+
 
   <pre>{{data | json}}</pre>
 
