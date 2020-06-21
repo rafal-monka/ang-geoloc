@@ -282,12 +282,14 @@ export class MapComponent implements OnInit {
           this.drawDataPanel(this.imei, t1, t2).then(x=> {
               let lastLoc = null
               if (this.path && this.path.length>0) {
-                    let loc = this.path[this.path.length-1].getPath().getArray() //google.maps.MVCArray<google.maps.LatLng>
-                    lastLoc = {
-                        lat: loc[1].lat(),
-                        lng: loc[1].lng()
-                    }
-                    this.updateCurrentLoc(lastLoc)
+                    try {
+                        let loc = this.path[this.path.length-1].getPath().getArray() //google.maps.MVCArray<google.maps.LatLng>
+                        lastLoc = {
+                            lat: loc[1].lat(),
+                            lng: loc[1].lng()
+                        }
+                        this.updateCurrentLoc(lastLoc)
+                    } catch (e) {}
               }
 
               //live data
