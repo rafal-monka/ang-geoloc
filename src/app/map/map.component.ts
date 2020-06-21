@@ -10,6 +10,10 @@ import { PanelDataObj } from '../paneldata-object';
 import { google } from 'google-maps';
 
 declare var google: any;
+const CONST_INIT_LAT: number = 51.138850;
+const CONST_INIT_LNG: number = 16.953648;
+const CONST_INIT_ZOOM: number = 15;
+const CONST_INIT_MAPTYPEID : string = 'roadmap'; //'roadmap' | 'hybrid' | 'satellite' | 'terrain'
 
 @Component({
   selector: 'app-map',
@@ -25,24 +29,18 @@ export class MapComponent implements OnInit {
   lifeDataState: boolean = false
   curPosMarker: google.maps.Marker
   followMe: boolean
-  job: any //###temp for simulation
 
-  initLat: number = 51.138850;
-  initLng: number = 16.953648;
-  initZoom: number = 15;
-  initMapTypeId : string = 'roadmap'; //'roadmap' | 'hybrid' | 'satellite' | 'terrain'
+
   timeFrom: Date
   timeTo: Date
   imei: string
 
   path: Array<any> = []
   rectangles: Array<any> = []
-  // polylines: any
   btses: Array<any> = []
 
   message:string
   messages: Array<any> = []
-  //route: any
 
   constructor(
     private mapService: MapService,
@@ -55,9 +53,9 @@ export class MapComponent implements OnInit {
       var options = {
           mapTypeControl: true,
           fullscreenControl: true,
-          center:new google.maps.LatLng(this.initLat, this.initLng),
-          zoom:this.initZoom,
-          mapTypeId: this.initMapTypeId
+          center:new google.maps.LatLng(CONST_INIT_LAT, CONST_INIT_LNG),
+          zoom:CONST_INIT_ZOOM,
+          mapTypeId: CONST_INIT_MAPTYPEID
       }
       map.setOptions(options)
       this.map = map;
@@ -66,24 +64,12 @@ export class MapComponent implements OnInit {
 
   ngOnInit() {
       this.mapService.currentMessage.subscribe(message => this.message = message)
-
       if (this.data.storage) {
           this.imei = this.data.storage.imei
           if (this.data.storage.dateFrom) this.timeFrom = moment(this.data.storage.dateFrom).utcOffset('+0000').add(-2, 'hours').toDate()
           if (this.data.storage.dateTo) this.timeTo = moment(this.data.storage.dateTo).utcOffset('+0000').add(-2, 'hours').toDate()
       }
-      //this.getPlaces()
-      //this.getRoute(this.timeFrom, this.timeTo, this.imei)
-      //this.getTestPolygon()
-      //this.getTestPolyline()
   }
-
-  // getPlaces() {
-  //     return this.mapService.getPlaces().subscribe(results => {
-  //       this.markers = results;
-  //     });
-  // }
-
 
   refresh() {
       if (this.data.storage.imei && this.timeFrom && this.timeTo) {
@@ -93,8 +79,74 @@ export class MapComponent implements OnInit {
       }
   }
 
-  drawDataPanel(imei, timeFrom, timeTo) {
-      // console.log('timeFrom, timeTo', timeFrom, timeTo)
+  //toggle live data (on/off)
+  toggleLiveData() {
+      if (this.lifeDataState) {
+          //close socket
+          this.socket.close(1000, 'Manual closing of web socket...')
+          //map - clear path
+          this.path.forEach(item => {
+                if (item) item.setMap(null);
+          })
+          this.path.length = 0
+          //map - clear live data lines
+          this.liveDataPolylines.forEach(item => {
+              item.setMap(null)
+          })
+          this.liveDataPolylines.length = 0
+      } else {
+          //1. read last (n) hours before showing live data
+          let nHours = -1
+          this.timeFrom = moment(new Date).add(nHours, 'hours').toDate()
+          this.timeTo = moment(new Date).toDate()
+          let t1 = moment(this.timeFrom).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
+          let t2 = moment(this.timeTo).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
+          this.drawDataPanel(this.imei, t1, t2).then(x=> {
+              let lastLoc = null
+              if (this.path && this.path.length>0) {
+                    try {
+                        let loc = this.path[this.path.length-1].getPath().getArray() //google.maps.MVCArray<google.maps.LatLng>
+                        lastLoc = {
+                            lat: loc[1].lat(),
+                            lng: loc[1].lng()
+                        }
+                        this.updateCurrentLoc(lastLoc)
+                    } catch (e) {}
+              }
+
+              //2. turn on live data
+              this.liveDataPolylines = []
+              this.socket = new WebSocket(this.utils.httpToWs()+"?imei="+this.imei);
+              this.turnOnLiveData(
+                  () => {
+                    this.lifeDataState = true
+                  },
+                  (msg) => {
+                      try {
+                        let geoloc = JSON.parse(msg)
+                        let newLoc = { lat: geoloc.latitude, lng: geoloc.longitude }
+                        this.updateCurrentLoc(newLoc)
+                        if (lastLoc) {
+                            this.liveDataPolylines.push(this.addLine(lastLoc, newLoc, geoloc.speed))
+                        }
+                        lastLoc = newLoc
+                        this.timeTo = moment(geoloc.devicetime).utcOffset('+0000').add(-2, 'hours').toDate()
+                      } catch (e) { }
+                  },
+                  () => {
+                      this.lifeDataState = false
+                      //map - clear current position
+                      if (this.curPosMarker) {
+                          this.curPosMarker.setMap(null)
+                          this.curPosMarker = null
+                      }
+                  }
+              )
+          })
+      }
+  }
+
+  private drawDataPanel(imei, timeFrom, timeTo) {
       //clear map
       this.path.forEach(item => {
           if (item) item.setMap(null);
@@ -105,7 +157,6 @@ export class MapComponent implements OnInit {
       this.rectangles = []
       this.path = []
       this.btses = []
-
       return new Promise((resolve, reject) => {
           //get panel data
           this.mapService.getPanelData(imei, timeFrom, timeTo).subscribe((results:PanelDataObj) => {
@@ -126,17 +177,7 @@ export class MapComponent implements OnInit {
                               { lat: results.geolocs[+index-1].lat, lng: results.geolocs[+index-1].lng },
                               { lat: cur_lat, lng: cur_lng }
                             ]
-                            let color = self.utils.getSpeedColor(results.geolocs[+index].spd)
-                            var polyline: google.maps.Polyline = new google.maps.Polyline({
-                              path: line,
-                              strokeColor: color,
-                              strokeOpacity: 0.9,
-                              strokeWeight: 6,
-                              fillColor: color,
-                              fillOpacity: 0.7
-                            });
-
-                            return polyline;
+                            return self.addLine(line[0], line[1], results.geolocs[+index].spd)
                         }
                       });
                       //set map for path elements
@@ -149,7 +190,7 @@ export class MapComponent implements OnInit {
                           return {
                               lat: results.geolocs[+index].btslat,
                               lng: results.geolocs[+index].btslng,
-                              info: results.geolocs[+index].btsi
+                              info: ''//results.geolocs[+index].btsi
                           }
                       })
                       //unique BTSes
@@ -197,7 +238,7 @@ export class MapComponent implements OnInit {
               }
 
               //set bounds
-              if (min_lat) {
+              if (results.geolocs.length > 0) {
                   this.map.fitBounds(
                       new google.maps.LatLngBounds(
                           new google.maps.LatLng(min_lat, min_lng),
@@ -252,81 +293,7 @@ export class MapComponent implements OnInit {
       };
   }
 
-  //toggle live data (on/off)
-  toggleLiveData() {
-      if (this.lifeDataState) {
-
-          //close socket
-          this.socket.close(1000, 'Manual closing...')
-
-          //map - clear path
-          this.path.forEach(item => {
-                if (item) item.setMap(null);
-          })
-          this.path.length = 0
-          //map - clear live data lines
-          this.liveDataPolylines.forEach(item => {
-              item.setMap(null)
-          })
-          this.liveDataPolylines.length = 0
-          //map - clear current position
-          this.curPosMarker.setMap(null)
-          this.curPosMarker = null
-
-      } else {
-          //read last (x) hours before showing live data
-          this.timeFrom = moment(new Date).add(-1, 'hours').toDate()
-          this.timeTo = moment(new Date).toDate()
-          let t1 = moment(this.timeFrom).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
-          let t2 = moment(this.timeTo).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
-          this.drawDataPanel(this.imei, t1, t2).then(x=> {
-              let lastLoc = null
-              if (this.path && this.path.length>0) {
-                    try {
-                        let loc = this.path[this.path.length-1].getPath().getArray() //google.maps.MVCArray<google.maps.LatLng>
-                        lastLoc = {
-                            lat: loc[1].lat(),
-                            lng: loc[1].lng()
-                        }
-                        this.updateCurrentLoc(lastLoc)
-                    } catch (e) {}
-              }
-
-              //live data
-              this.liveDataPolylines = []
-              this.socket = new WebSocket(this.utils.httpToWs()+"?imei="+this.imei);
-              this.turnOnLiveData(
-                  () => {
-// this.messages.push('[CLIENT] callbackOnOpen')
-                    this.lifeDataState = true
-                  },
-                  (msg) => {
-                      try {
-                        let geoloc = JSON.parse(msg)
-                        let newLoc = { lat: geoloc.latitude, lng: geoloc.longitude }
-                        this.updateCurrentLoc(newLoc)
-                        if (lastLoc) {
-                            this.liveDataPolylines.push(this.addLine(lastLoc, newLoc, geoloc.speed))
-                        }
-                        lastLoc = newLoc
-                        this.timeTo = geoloc.devicetime
-                      } catch (e) {
-// this.messages.push(msg)
-                      }
-                  },
-                  () => {
-// this.messages.push('[CLIENT] callbackOnClose')
-                      this.lifeDataState = false
-                  }
-              )
-
-
-          })
-      }
-  }
-
-
-  addLine(loc1, loc2, speed) {
+  private addLine(loc1, loc2, speed) {
     let color = this.utils.getSpeedColor(speed)
       let line = [
         { lat: loc1.lat, lng: loc1.lng },
@@ -344,31 +311,19 @@ export class MapComponent implements OnInit {
       return polyline
   }
 
-  //-----test
-  getTestPolygon() {
-    return this.mapService.getTest().subscribe(results => {
-      var testCoords = results;
-      // var testCoords = [{"lat":51.1389,"lng":16.9517},{"lat":51.1238,"lng":16.8543},{"lat":51.1239,"lng":16.8538},{"lat":51.1243,"lng":16.8539},{"lat":51.1243,"lng":16.8544},{"lat":51.1174,"lng":17.4196}]
-      // Construct the TEST polygon.
-      if (google) {
-        var testPolygon: google.maps.Polygon = new google.maps.Polygon({
-          paths: testCoords,
-          strokeColor: '#0000ff',
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
-          fillColor: '#0000ff',
-          fillOpacity: 0.35
-        });
-        testPolygon.setMap(this.map);
-      } else {
-        console.error('Variable google NOT set')
-      }
-    });
-  }
-
 }
 
+
+
 //--------------------temp
+
+// getPlaces() {
+//     return this.mapService.getPlaces().subscribe(results => {
+//       this.markers = results;
+//     });
+// }
+
+// job: any //###temp for simulation
 // if (false) this.job = setInterval(()=>{
 //   let r1 = Math.random()
 //   let r2 = Math.random()

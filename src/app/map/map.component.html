@@ -37,9 +37,9 @@
   </table>
 </div>
 
-<div>
+<div class="container-fluid">
 
-  <pre>{{message}}</pre>
+  <pre *ngIf="message" class="alert alert-info">{{message}}</pre>
 
   <agm-map (mapReady)="mapReady($event)"
     >
