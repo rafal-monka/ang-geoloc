@@ -46,7 +46,7 @@ export class MapComponent implements OnInit {
     private mapService: MapService,
     private utils: Utils,
     private router: Router,
-    public data: Data
+    public data: Data,
   ) { }
 
   mapReady(map) {
@@ -71,11 +71,19 @@ export class MapComponent implements OnInit {
       }
   }
 
+  setDateFrom() {
+    this.data.storage.dateFrom = moment(this.timeFrom).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
+  }
+
+  setDateTo() {
+    this.data.storage.dateTo = moment(this.timeTo).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
+  }
+
   refresh() {
       if (this.data.storage.imei && this.timeFrom && this.timeTo) {
-        let t1 = moment(this.timeFrom).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
-        let t2 = moment(this.timeTo).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
-        this.drawDataPanel(this.data.storage.imei, t1, t2)
+        this.data.storage.dateFrom = moment(this.timeFrom).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
+        this.data.storage.dateTo = moment(this.timeTo).format("YYYY-MM-DDTHH:mm:ss")+".000Z";
+        this.drawDataPanel(this.data.storage.imei, this.data.storage.dateFrom, this.data.storage.dateTo)
       }
   }
 
@@ -238,7 +246,7 @@ export class MapComponent implements OnInit {
               }
 
               //set bounds
-              if (results.geolocs.length > 0) {
+              if (results.geolocs && results.geolocs.length > 0) {
                   this.map.fitBounds(
                       new google.maps.LatLngBounds(
                           new google.maps.LatLng(min_lat, min_lng),

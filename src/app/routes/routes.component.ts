@@ -19,7 +19,7 @@ export class RoutesComponent implements OnInit {
   constructor(
     private mapService: MapService,
     private router: Router,
-    private data: Data) { }
+    public data: Data) { }
 
   ngOnInit() {
       this.getRoutes()

@@ -1,5 +1,9 @@
-<div class="container-fluid">
+IMEI={{data.storage.imei}}
 
+
+<div *ngIf="routes && routes.length===0">No routes</div>
+
+<div class="container-fluid" *ngIf="routes && routes.length>0">
   <input
     style="margin-top: 2px; margin-bottom: 2px;"
     id="filterText"
@@ -9,7 +13,7 @@
     [(ngModel)]="filterText"
     (ngModelChange)="filterRoutes()"/>
 
-  <div *ngIf="routes">
+  <div>
     <ul class="list-group">
       <li class="list-group-item"
         *ngFor="let route of filteredRoutes; let i = index;" (click)="chooseRoute(route)">

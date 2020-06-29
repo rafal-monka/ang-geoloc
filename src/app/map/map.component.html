@@ -1,5 +1,5 @@
 <div class="container-fluid">
-  <table style="margin-top: 2px;">
+  <table style="margin: 2px;">
     <tr style="vertical-align: top;">
       <td>
             <ejs-datetimepicker
@@ -7,6 +7,7 @@
               id="timeFrom" name="from"
               class="form-control"
               [(ngModel)]="timeFrom"
+              (change)="setDateFrom()"
               placeholder="From..."
               format ='yyyy-MM-dd HH:mm:ss'>
             </ejs-datetimepicker>
@@ -29,6 +30,7 @@
               id="timeTo" name="to"
               class="form-control"
               [(ngModel)]="timeTo"
+              (change)="setDateTo()"
               placeholder="To..."
               format ='yyyy-MM-dd HH:mm:ss'>
             </ejs-datetimepicker>
@@ -38,10 +40,10 @@
 </div>
 
 <div class="container-fluid">
-
   <pre *ngIf="message" class="alert alert-info">{{message}}</pre>
+</div>
 
-  <agm-map (mapReady)="mapReady($event)"
+<agm-map (mapReady)="mapReady($event)"
     >
       <!-- <agm-marker  [latitude]="initLat" [longitude]="initLng"></agm-marker> -->
 
@@ -67,6 +69,7 @@
       </ng-container> -->
 
   </agm-map>
+
   IMEI={{imei}}
   <br/>
   <ul>
@@ -77,5 +80,3 @@
 
 
   <pre>{{data | json}}</pre>
-
-</div>

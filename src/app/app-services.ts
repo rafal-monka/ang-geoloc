@@ -14,10 +14,6 @@ export class MapService {
     this.messageSource.next(message)
   }
 
-  getTest() {
-    return this.http.get(environment.host+"/api/place/test")
-  }
-
   getPlaces() {
     return this.http.get(environment.host+"/api/place")
   }
@@ -29,33 +25,9 @@ export class MapService {
   getPanelData(imei: String, fromTime: String, toTime: String) {
     return this.http.get(environment.host+"/api/geoloc/paneldata/"+imei+"/"+fromTime+"/"+toTime)
   }
+
+  getDevices() {
+    return this.http.get(environment.host+"/api/device")
+  }
 }
 
-
-// [
-    //     [51.136850, 16.953648, 'green'],
-    //     [51.12, 16.96, 'red'],
-    //     [51.12, 16.97, 'blue'],
-    //     [51.10, 16.97, 'yellow'],
-    //     [51.10, 16.94, 'orange'],
-    //     [51.08, 16.94, 'grey']
-    // ]
-
-    // [
-    //   {
-    //     path: [
-    //       {latitude: 51.136850, longitude: 16.953648},
-    //       {latitude: 51.12, longitude: 16.96},
-    //       {latitude: 51.11, longitude: 16.99}
-    //     ],
-    //     color: 'green'
-    //   },
-    //   {
-    //     path: [
-    //       {latitude: 51.11, longitude: 16.99},
-    //       {latitude: 51.09, longitude: 16.94},
-    //       {latitude: 51.08, longitude: 16.97}
-    //     ],
-    //     color: 'red'
-    //   }
-    // ]

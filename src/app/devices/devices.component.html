@@ -1,0 +1,19 @@
+<div class="container-fluid">
+
+  <div class="form-check" *ngFor="let device of devices">
+
+    <input
+    class="form-check-input" id="{{device.imei}}"
+    type="radio"
+    name="device"
+    [(ngModel)]="data.storage.imei"
+    value="{{device.imei}}"
+    id="{{device.imei}}"
+    (click)="chooseDevice(device.imei)">
+
+    <label for="{{device.imei}}">
+      {{device.imei}} {{device.description | deviceModel}}
+    </label>
+
+  </div>
+</div>
